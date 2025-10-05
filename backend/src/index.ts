@@ -111,7 +111,7 @@ app.get('/.well-known/hackathon.json', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction): void => {
   console.error('Unhandled error:', err);
   
   if (err.code === 'LIMIT_FILE_SIZE') {

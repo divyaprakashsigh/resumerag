@@ -16,7 +16,7 @@ router.post('/',
   authenticateToken,
   requireRole(['RECRUITER', 'ADMIN']),
   validate(jobSchemas.create),
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       const { title, description, requirements } = req.body;
 
@@ -31,6 +31,7 @@ router.post('/',
       });
 
       res.status(201).json(job);
+      return;
     } catch (error) {
       console.error('Create job error:', error);
       res.status(500).json({
@@ -39,6 +40,7 @@ router.post('/',
           message: 'Failed to create job'
         }
       } as ApiError);
+      return;
     }
   }
 );
@@ -50,34 +52,38 @@ router.post('/',
 router.delete('/:id', 
   authenticateToken,
   requireRole(['RECRUITER', 'ADMIN']),
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       const { id } = req.params;
 
       const existing = await prisma.job.findUnique({ where: { id } });
       if (!existing) {
-        return res.status(404).json({
+        res.status(404).json({
           error: { code: 'JOB_NOT_FOUND', message: 'Job not found' }
         } as ApiError);
+        return;
       }
 
       // Recruiter can delete only their own job; admin can delete any
       if (req.user!.role === 'RECRUITER' && existing.userId && existing.userId !== req.user!.id) {
-        return res.status(403).json({
+        res.status(403).json({
           error: { code: 'ACCESS_DENIED', message: 'You can delete only your jobs' }
         } as ApiError);
+        return;
       }
 
       // Delete related match results first due to foreign keys
       await prisma.matchResult.deleteMany({ where: { jobId: id } });
       await prisma.job.delete({ where: { id } });
 
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Delete job error:', error);
       res.status(500).json({
         error: { code: 'DELETE_ERROR', message: 'Failed to delete job' }
       } as ApiError);
+      return;
     }
   }
 );
@@ -86,7 +92,7 @@ router.delete('/:id',
  * GET /api/jobs/:id
  * Get job description by ID
  */
-router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:id', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -95,15 +101,17 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     });
 
     if (!job) {
-      return res.status(404).json({
+      res.status(404).json({
         error: {
           code: 'JOB_NOT_FOUND',
           message: 'Job not found'
         }
       } as ApiError);
+      return;
     }
 
     res.json(job);
+    return;
   } catch (error) {
     console.error('Get job error:', error);
     res.status(500).json({
@@ -112,6 +120,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
         message: 'Failed to fetch job'
       }
     } as ApiError);
+    return;
   }
 });
 
@@ -119,7 +128,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
  * GET /api/jobs
  * List all jobs (all authenticated users can view)
  */
-router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
     const { limit = '10', offset = '0' } = req.query as { limit?: string; offset?: string };
     const limitNum = parseInt(limit);
@@ -138,6 +147,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       items: jobs,
       next_offset: offsetNum + limitNum < total ? offsetNum + limitNum : undefined
     });
+    return;
   } catch (error) {
     console.error('List jobs error:', error);
     res.status(500).json({
@@ -146,6 +156,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         message: 'Failed to fetch jobs'
       }
     } as ApiError);
+    return;
   }
 });
 
@@ -157,7 +168,7 @@ router.post('/:id/match',
   authenticateToken,
   requireRole(['RECRUITER', 'ADMIN']),
   validate(jobSchemas.match),
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       const { id } = req.params;
       const { top_n = 10 }: JobMatchRequest = req.body;
@@ -168,12 +179,13 @@ router.post('/:id/match',
       });
 
       if (!job) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'JOB_NOT_FOUND',
             message: 'Job not found'
           }
         } as ApiError);
+        return;
       }
 
       // Get all resumes with user information
@@ -200,7 +212,7 @@ router.post('/:id/match',
       const jobEmbedding = generateMockEmbedding(jobText);
 
       // Calculate match scores
-      const matches = resumes.map(resume => {
+      const matches = resumes.map((resume) => {
         const resumeEmbedding = resume.embedding as number[];
         const similarity = cosineSimilarity(jobEmbedding, resumeEmbedding);
 
@@ -210,15 +222,15 @@ router.post('/:id/match',
         
         const resumeText = resume.text.toLowerCase();
         const jobRequirements: string[] = (Array.isArray(job.requirements)
-          ? (job.requirements as unknown[]).map(v => String(v).toLowerCase())
+          ? (job.requirements as unknown[]).map((v) => String(v).toLowerCase())
           : []);
 
         // Find evidence for each requirement with flexible matching
-        jobRequirements.forEach(requirement => {
+        jobRequirements.forEach((requirement) => {
           let found = false;
           
           // Split requirement into individual words/skills
-          const requirementWords = requirement.split(/[,:;]/).map(word => word.trim().toLowerCase());
+          const requirementWords = requirement.split(/[,:;]/).map((word) => word.trim().toLowerCase());
           
           // Check if any of the requirement words are found in resume
           for (const word of requirementWords) {
@@ -293,6 +305,7 @@ router.post('/:id/match',
       };
 
       res.json(response);
+      return;
     } catch (error) {
       console.error('Job match error:', error);
       res.status(500).json({
@@ -301,6 +314,7 @@ router.post('/:id/match',
           message: 'Failed to match resumes'
         }
       } as ApiError);
+      return;
     }
   }
 );

@@ -39,18 +39,19 @@ router.post('/',
   requireRole(['USER']),
   idempotencyCheck,
   upload.array('resumes', 10),
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       const files = req.files as Express.Multer.File[];
       const idempotencyKey = req.headers['idempotency-key'] as string;
 
       if (!files || files.length === 0) {
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'NO_FILES',
             message: 'No files uploaded'
           }
         } as ApiError);
+        return;
       }
 
       const results = [];
@@ -127,6 +128,7 @@ router.post('/',
       }
 
       res.status(201).json(response);
+      return;
     } catch (error) {
       console.error('Upload error:', error);
       res.status(500).json({
@@ -135,6 +137,7 @@ router.post('/',
           message: 'Failed to upload resumes'
         }
       } as ApiError);
+      return;
     }
   }
 );
@@ -148,7 +151,7 @@ router.post('/',
 router.get('/', 
   authenticateToken,
   validateQuery(resumeSchemas.search),
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       const { limit, offset, q } = req.query as { limit: string; offset: string; q?: string };
       const limitNum = parseInt(limit);
@@ -212,6 +215,7 @@ router.get('/',
       };
 
       res.json(response);
+      return;
     } catch (error) {
       console.error('Search error:', error);
       res.status(500).json({
@@ -220,6 +224,7 @@ router.get('/',
           message: 'Failed to search resumes'
         }
       } as ApiError);
+      return;
     }
   }
 );
@@ -230,7 +235,7 @@ router.get('/',
  * - USERS: Can only access their own resumes
  * - RECRUITERS/ADMIN: Can access any resume
  */
-router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:id', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
     const { id } = req.params;
     const isRecruiter = req.user!.role === 'RECRUITER' || req.user!.role === 'ADMIN';
@@ -248,22 +253,24 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     });
 
     if (!resume) {
-      return res.status(404).json({
+      res.status(404).json({
         error: {
           code: 'RESUME_NOT_FOUND',
           message: 'Resume not found'
         }
       } as ApiError);
+      return;
     }
 
     // Check if user can access this resume
     if (!isRecruiter && resume.userId !== req.user!.id) {
-      return res.status(403).json({
+      res.status(403).json({
         error: {
           code: 'ACCESS_DENIED',
           message: 'You can only access your own resumes'
         }
       } as ApiError);
+      return;
     }
 
     let processedText = resume.text;
@@ -282,6 +289,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     };
 
     res.json(response);
+    return;
   } catch (error) {
     console.error('Get resume error:', error);
     res.status(500).json({
@@ -290,6 +298,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
         message: 'Failed to fetch resume'
       }
     } as ApiError);
+    return;
   }
 });
 
@@ -297,17 +306,18 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
  * POST /api/ask
  * Semantic search over resumes
  */
-router.post('/ask', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/ask', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
     const { query, k = 5 }: AskQuery = req.body;
 
     if (!query) {
-      return res.status(400).json({
+      res.status(400).json({
         error: {
           code: 'QUERY_REQUIRED',
           message: 'Query is required'
         }
       } as ApiError);
+      return;
     }
 
     // Get all resumes for semantic search
@@ -335,6 +345,7 @@ router.post('/ask', authenticateToken, async (req: AuthRequest, res) => {
     };
 
     res.json(response);
+    return;
   } catch (error) {
     console.error('Ask error:', error);
     res.status(500).json({
@@ -343,6 +354,7 @@ router.post('/ask', authenticateToken, async (req: AuthRequest, res) => {
         message: 'Failed to perform semantic search'
       }
     } as ApiError);
+    return;
   }
 });
 

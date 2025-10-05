@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
  * POST /api/auth/register
  * Register a new user
  */
-router.post('/register', validate(authSchemas.register), async (req, res) => {
+router.post('/register', validate(authSchemas.register), async (req, res): Promise<void> => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -23,13 +23,14 @@ router.post('/register', validate(authSchemas.register), async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(409).json({
+      res.status(409).json({
         error: {
           code: 'USER_EXISTS',
           field: 'email',
           message: 'User with this email already exists'
         }
       } as ApiError);
+      return;
     }
 
     // Hash password
@@ -71,6 +72,7 @@ router.post('/register', validate(authSchemas.register), async (req, res) => {
     };
 
     res.status(201).json(response);
+    return;
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
@@ -79,6 +81,7 @@ router.post('/register', validate(authSchemas.register), async (req, res) => {
         message: 'Failed to register user'
       }
     } as ApiError);
+    return;
   }
 });
 
@@ -86,7 +89,7 @@ router.post('/register', validate(authSchemas.register), async (req, res) => {
  * POST /api/auth/login
  * Login user
  */
-router.post('/login', validate(authSchemas.login), async (req, res) => {
+router.post('/login', validate(authSchemas.login), async (req, res): Promise<void> => {
   try {
     const { email, password } = req.body;
 
@@ -96,23 +99,25 @@ router.post('/login', validate(authSchemas.login), async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({
+      res.status(401).json({
         error: {
           code: 'INVALID_CREDENTIALS',
           message: 'Invalid email or password'
         }
       } as ApiError);
+      return;
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      return res.status(401).json({
+      res.status(401).json({
         error: {
           code: 'INVALID_CREDENTIALS',
           message: 'Invalid email or password'
         }
       } as ApiError);
+      return;
     }
 
     // Generate JWT token
@@ -139,6 +144,7 @@ router.post('/login', validate(authSchemas.login), async (req, res) => {
     };
 
     res.json(response);
+    return;
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
@@ -147,6 +153,7 @@ router.post('/login', validate(authSchemas.login), async (req, res) => {
         message: 'Failed to login'
       }
     } as ApiError);
+    return;
   }
 });
 
