@@ -1,5 +1,5 @@
-import axios, { AxiosResponse } from 'axios';
-import { AuthResponse, User, Resume, Job, MatchResult, AskResponse, PaginatedResponse, ApiError } from '../types';
+import axios from 'axios';
+import { AuthResponse, Resume, Job, MatchResult, AskResponse, PaginatedResponse } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://valiant-perception-production.up.railway.app';
 

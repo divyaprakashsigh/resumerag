@@ -307,8 +307,8 @@ export const JobsPage: React.FC = () => {
                       Requirements:
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {job.requirements.map((req, index) => (
-                        <Badge key={index} variant="default">
+                      {job.requirements.map((req) => (
+                        <Badge key={req} variant="default">
                           {req}
                         </Badge>
                       ))}

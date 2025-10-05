@@ -20,7 +20,7 @@ interface UploadProgress {
 export const UploadPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!isAuthenticated) {
@@ -47,7 +47,7 @@ export const UploadPage: React.FC = () => {
       status: 'uploading'
     }));
     setUploadProgress(progress);
-    setIsUploading(true);
+    setUploading(true);
 
     try {
       await resumeAPI.upload(validFiles, (progressPercent) => {
@@ -76,7 +76,7 @@ export const UploadPage: React.FC = () => {
         error: message
       })));
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
   }, [isAuthenticated]);
 
