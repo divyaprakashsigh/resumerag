@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  resumes Resume[]
+  jobs    Job[]
+
+  @@map("users")
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  filename  String
+  text      String
+  embedding Json     // Array of numbers for mock embeddings
+  pii       Json     // Extracted PII data
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  matchResults MatchResult[]
+
+  @@map("resumes")
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  requirements Json    // Array of requirements/skills
+  createdAt   DateTime @default(now()) @map("created_at")
+  userId      String?  @map("user_id")
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  matchResults MatchResult[]
+
+  @@map("jobs")
+}
+
+model MatchResult {
+  id               String   @id @default(cuid())
+  jobId            String   @map("job_id")
+  resumeId         String   @map("resume_id")
+  score            Float
+  evidence         Json     // Evidence snippets
+  missing          Json     // Missing requirements
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, resumeId])
+  @@map("match_results")
+}
+
+enum Role {
+  USER
+  RECRUITER
+  ADMIN
+}
