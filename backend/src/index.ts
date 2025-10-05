@@ -25,8 +25,10 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
+  origin: process.env.NODE_ENV === 'production'
+    ? [
+        'https://resumerag-production-5261.up.railway.app'
+      ]
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
