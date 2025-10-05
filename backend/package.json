@@ -4,8 +4,10 @@
   "description": "ResumeRAG Backend API",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc --skipLibCheck --noEmitOnError false || true",
+    "prebuild": "prisma generate",
+    "build": "tsc --skipLibCheck --noEmitOnError false",
     "start": "node dist/index.js",
+    "prestart": "node -e \"require('fs').existsSync('dist')||process.exit(1)\" || npm run build",
     "dev": "tsx watch src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch",
