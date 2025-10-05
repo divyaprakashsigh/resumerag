@@ -115,29 +115,32 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   console.error('Unhandled error:', err);
   
   if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({
+    res.status(413).json({
       error: {
         code: 'FILE_TOO_LARGE',
         message: 'File size exceeds 10MB limit'
       }
     });
+    return;
   }
   
   if (err.code === 'LIMIT_FILE_COUNT') {
-    return res.status(413).json({
+    res.status(413).json({
       error: {
         code: 'TOO_MANY_FILES',
         message: 'Too many files uploaded'
       }
     });
+    return;
   }
   
-  return res.status(500).json({
+  res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
       message: 'Internal server error'
     }
   });
+  return;
 });
 
 // 404 handler
