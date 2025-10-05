@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { AuthResponse, User, Resume, Job, MatchResult, AskResponse, PaginatedResponse, ApiError } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://valiant-perception-production.up.railway.app';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
