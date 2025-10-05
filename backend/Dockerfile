@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev) for building
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -18,6 +18,9 @@ RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
+
+# Remove devDependencies to keep image lean
+RUN npm prune --production
 
 # Create uploads directory
 RUN mkdir -p uploads
