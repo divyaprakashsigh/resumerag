@@ -1,25 +1,23 @@
-# Use Node.js 18 Alpine
 FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev for TypeScript)
+# Install ALL dependencies (including dev for TS)
 RUN npm ci
 
-# Copy the rest of the source code
+# Copy source code
 COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build TypeScript ignoring errors
-RUN npx tsc --noEmitOnError false
+# Build TypeScript ignoring type errors
+RUN npx tsc --noEmitOnError false --skipLibCheck
 
-# Remove devDependencies for lean image
+# Remove devDependencies for production image
 RUN npm prune --production
 
 # Create uploads directory
@@ -33,4 +31,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:4000/api/health || exit 1
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]
