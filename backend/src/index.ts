@@ -24,19 +24,12 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(helmet());
 
 // CORS configuration
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://resumerag-production-5261.up.railway.app']
-  : ['http://localhost:3000', 'http://localhost:5173'];
-
 const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser clients
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // reflect request origin
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
