@@ -5,23 +5,23 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including dev for TS)
+# Install all dependencies (including dev for TS)
 RUN npm ci
 
 # Copy source code
 COPY . .
 
+# Create uploads directory early
+RUN mkdir -p uploads
+
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build TypeScript ignoring type errors
+# Build TypeScript ignoring all errors
 RUN npx tsc --noEmitOnError false --skipLibCheck
 
-# Remove devDependencies for production image
+# Remove devDependencies to keep image lean
 RUN npm prune --production
-
-# Create uploads directory
-RUN mkdir -p uploads
 
 # Expose port
 EXPOSE 4000
