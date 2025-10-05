@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { validate } from '../middleware/validation';
-import { authSchemas, AuthRequest } from '../middleware/validation';
+import { authSchemas } from '../middleware/validation';
 import { ApiError, AuthResponse } from '../types';
 
 const router = Router();

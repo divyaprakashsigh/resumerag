@@ -73,7 +73,7 @@ router.post('/',
                   filename: resumeData.filename,
                   text: resumeData.text,
                   embedding: embedding,
-                  pii: pii
+                  pii: pii as unknown as any
                 }
               });
 
@@ -94,7 +94,7 @@ router.post('/',
                 filename: file.originalname,
                 text: parsed,
                 embedding: embedding,
-                pii: pii
+                pii: pii as unknown as any
               }
             });
 

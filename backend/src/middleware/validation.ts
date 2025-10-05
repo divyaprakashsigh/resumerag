@@ -6,28 +6,30 @@ import { ApiError } from '../types';
  * Validation middleware factory
  */
 export function validate(schema: z.ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       schema.parse(req.body);
-      next();
+      return next();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const firstError = error.errors[0];
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             field: firstError.path.join('.'),
             message: firstError.message
           }
         } as ApiError);
+        return;
       }
       
-      return res.status(400).json({
+      res.status(400).json({
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request data'
         }
       } as ApiError);
+      return;
     }
   };
 }
@@ -36,28 +38,30 @@ export function validate(schema: z.ZodSchema) {
  * Query validation middleware factory
  */
 export function validateQuery(schema: z.ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       schema.parse(req.query);
-      next();
+      return next();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const firstError = error.errors[0];
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             field: firstError.path.join('.'),
             message: firstError.message
           }
         } as ApiError);
+        return;
       }
       
-      return res.status(400).json({
+      res.status(400).json({
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid query parameters'
         }
       } as ApiError);
+      return;
     }
   };
 }

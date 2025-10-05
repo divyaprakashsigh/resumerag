@@ -13,7 +13,7 @@ const CACHE_TTL = 24 * 60 * 60 * 1000;
 /**
  * Idempotency middleware for resume uploads
  */
-export function idempotencyCheck(req: Request, res: Response, next: NextFunction) {
+export function idempotencyCheck(req: Request, res: Response, next: NextFunction): void {
   const idempotencyKey = req.headers['idempotency-key'] as string;
   
   if (!idempotencyKey) {
@@ -23,7 +23,8 @@ export function idempotencyCheck(req: Request, res: Response, next: NextFunction
   // Check cache first
   const cached = idempotencyCache.get(idempotencyKey);
   if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-    return res.json(cached.response);
+    res.json(cached.response);
+    return;
   }
 
   // Check database for existing resume with this key
@@ -48,13 +49,14 @@ export function idempotencyCheck(req: Request, res: Response, next: NextFunction
         timestamp: Date.now()
       });
       
-      return res.json(response);
+      res.json(response);
+      return;
     }
     
-    next();
+    return next();
   }).catch(error => {
     console.error('Idempotency check error:', error);
-    next(); // Continue on error
+    return next(); // Continue on error
   });
 }
 

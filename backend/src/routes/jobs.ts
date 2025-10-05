@@ -193,7 +193,10 @@ router.post('/:id/match',
       });
 
       // Generate job embedding from title + description + requirements
-      const jobText = `${job.title} ${job.description} ${job.requirements.join(' ')}`;
+      const requirementsArray: string[] = Array.isArray(job.requirements)
+        ? (job.requirements as unknown[]).map(String)
+        : [];
+      const jobText = `${job.title} ${job.description} ${requirementsArray.join(' ')}`;
       const jobEmbedding = generateMockEmbedding(jobText);
 
       // Calculate match scores
@@ -206,7 +209,9 @@ router.post('/:id/match',
         const missingRequirements: string[] = [];
         
         const resumeText = resume.text.toLowerCase();
-        const jobRequirements = job.requirements.map(req => req.toLowerCase());
+        const jobRequirements: string[] = (Array.isArray(job.requirements)
+          ? (job.requirements as unknown[]).map(v => String(v).toLowerCase())
+          : []);
 
         // Find evidence for each requirement with flexible matching
         jobRequirements.forEach(requirement => {

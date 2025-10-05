@@ -117,7 +117,7 @@ State University (2013-2017)
       filename: 'john_smith_resume.pdf',
       text: resume1Text,
       embedding: generateMockEmbedding(resume1Text),
-      pii: extractPII(resume1Text)
+      pii: extractPII(resume1Text) as unknown as any
     }
   });
 
@@ -127,7 +127,7 @@ State University (2013-2017)
       filename: 'sarah_johnson_resume.pdf',
       text: resume2Text,
       embedding: generateMockEmbedding(resume2Text),
-      pii: extractPII(resume2Text)
+      pii: extractPII(resume2Text) as unknown as any
     }
   });
 
